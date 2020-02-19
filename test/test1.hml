@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Autocompletado de Mutiples campos Usando jQuery , Ajax , PHP y MySQL</title>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+ 
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  
+</head>
+<body>
+ 
+<div class="ui-widget">
+<form class="form-inline" method="post" action="#">
+    <div class="input-group input-group-sm">
+        <input class="search_query form-control" type="text" name="campobuscar" id="campobuscar" placeholder="Buscar...">
+        <span class="input-group-btn">
+            <button type="submit" class="btn btn-info btn-flat"><i class="fa fa-search"></i></button>
+        </span>
+    </div>
+</form>
+<div id="suggestions"></div>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+     $('#campobuscar').autocomplete({
+                 
+                  source: function(request,response){
+                      $.ajax({
+                          url: "paises.php",
+                          dataType:"json",
+                          data:"q:request.term",
+                          success: function(data){
+                              response(data);
+                          }
+                      });
+                      
+                  },
+                  minLength:4,
+                  select: function(event, ui){
+                      alert("Seleciono: "+ui.item.label);
+                      
+                  }
+                  
+              }); 
+}); 
+</script>
+</body>
+</html>
