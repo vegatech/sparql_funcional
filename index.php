@@ -37,6 +37,7 @@
   
 //var idioma;
 var colscounter =0;
+var colscounter2 =0;
 var endpointURL = 'http://dbpedia.org/sparql';
 var defaultGraphURI = 'http://dbpedia.org';
 var namespaces = {
@@ -144,7 +145,7 @@ function getComandoName(strcomando) {
         comandosMap.set("canciones", "canciones");
         comandosMap.set("clubes", "clubes");
         comandosMap.set("cargos", "dos");
-        comandosMap.set("premios", "tres");
+        comandosMap.set("propietario", "propietario");
         comando = strcomando.substr(posicioni,strcomando.length);
         comando = comando.toLowerCase();
         
@@ -298,7 +299,7 @@ function displayResult(json, resultTitle) {
         //var button = document.createElement('button');
         p.className = 'empty';
         p.className ='alert alert-danger';             
-        button.className='close';
+        
         p.appendChild(document.createTextNode('[No se encontraron resultados con los valores indicados, por favor corrija los patrones de Busqueda]'));
         div.appendChild(p);
     } else {
@@ -320,7 +321,7 @@ function displayResult2(json, resultTitle) {
         p.appendChild(document.createTextNode('[No se encontraron resultados con los valores indicados, por favor corrija los patrones de Busqueda]'));
         div.appendChild(p);
     } else {
-        div.appendChild(jsonToHTML(json));
+        div.appendChild(jsonToHTML2(json));
     }
     setResult2(div);
 }
@@ -436,43 +437,44 @@ function jsonToHTML(json) {
     return table;
 }
 function jsonToHTML2(json) {
-    //console.log(json);
-    var div = document.createElement('div');
+     //console.log(json);
+    var table = document.createElement('table');
     //table.className = 'queryresults';
-    //style="display:none;"
-    div.className = "card";
-    div.setAttribute('style','width: 18rem;');
-    var tr = document.createElement('div');
+    table.className = 'table table-bordered';
+    var tr = document.createElement('tr');
     for (var i in json.head.vars) {
-        var th = document.createElement('div');
-        th.setAttribute("style","display:none;");
+        var th = document.createElement('th');
+        th.setAttribute('scope','col');
         th.appendChild(document.createTextNode(json.head.vars[i]));
         tr.appendChild(th);
     }
-    div.appendChild(tr);
+    table.appendChild(tr);
     for (var i in json.results.bindings) {
         var binding = json.results.bindings[i];
-        var divbd = document.createElement('div');
-        divbd.className = "card-body";
-        //div.setAttribute('style','width: 18rem;');
+        var tr = document.createElement('tr');
+        if (i % 2) {
+            tr.className = 'odd';
+        } else {
+            tr.className = 'even';
+        }
         for (var v in json.head.vars) {
             td = document.createElement('td');
             //console.log('Entra al td Iterando columnas'+colscounter);
-            colscounter++;
+            colscounter2++;
             var varName = json.head.vars[v];
             var node = binding[varName];
             if (varName == 'property') {
-                td.appendChild(nodeToHTML(node, function(uri) { return '?property=' + escape(uri); }));
+                td.appendChild(nodeToHTML2(node, function(uri) { return '?property=' + escape(uri); }));
             } else if (varName == 'class') {
-                td.appendChild(nodeToHTML(node, function(uri) { return '?class=' + escape(uri); }));
+                td.appendChild(nodeToHTML2(node, function(uri) { return '?class=' + escape(uri); }));
             } else {
-                td.appendChild(nodeToHTML(node, function(uri) { return '?describe=' + escape(uri); }));
+                td.appendChild(nodeToHTML2(node, function(uri) { return '?describe=' + escape(uri); }));
             }
-            divbd.appendChild(td);
+            tr.appendChild(td);
         }
-        div.appendChild(tr);
+        table.appendChild(tr);
     }
-    return div;
+    return table;
 }
 
 function toQName(uri) {
@@ -598,7 +600,105 @@ function nodeToHTML(node, linkMaker) {
     }
     return document.createTextNode('???');
 }
-
+function nodeToHTML2(node, linkMaker) {
+    if (!node) {
+        var span = document.createElement('span');
+        span.className = 'unbound';
+        span.title = 'Unbound'
+        span.appendChild(document.createTextNode('-'));
+        return span;
+    }
+    if (node.type == 'uri') {
+         ext= node.value.indexOf("jpg");
+        var span = document.createElement('span');
+        span.className = 'uri';
+        if (!ext) {
+            console.log('ext');
+        var qname = toQName(node.value);
+        var a = document.createElement('a');
+        a.href = linkMaker(node.value);
+        a.title = '<' + node.value + '>';
+        if (qname) {
+            a.appendChild(document.createTextNode(qname));
+            span.appendChild(a);
+        } else {
+            a.appendChild(document.createTextNode(node.value));
+            span.appendChild(document.createTextNode('<'));
+            span.appendChild(a);
+            span.appendChild(document.createTextNode('>'));
+        }
+        }
+        match = node.value.match(/^(https?|ftp|mailto|irc|gopher|news):/);
+       //ext= node.value.match(/^(.jpg|.png|.bmp):/);
+       
+         //var ext = node.split('.').pop();
+        if (match) {
+            if (ext) {
+                ////console.log('ext');
+                //console.log(node.value);
+                span.appendChild(document.createTextNode(node.value+'  '));
+            var externalLink = document.createElement('a');
+            externalLink.href = node.value;
+            externalLink.title = '<' + node.value + '>';
+            img = document.createElement('img');
+            /*if (colscounter2==1){*/
+               //  console.log('verdadero:'+colscounter);
+                img.src = 'link.png';
+                colscounter2=colscounter+1;
+               
+            /*}else{
+            img.src = node.value;
+               // console.log('verdadero:'+colscounter);
+                colscounter2=colscounter+1;
+                
+            }*/
+            img.alt = '[' + match[1] + ']';
+            img.title = 'Go to Web page';
+            externalLink.appendChild(img);
+            span.appendChild(externalLink);
+            }else{
+           
+          
+            span.appendChild(document.createTextNode(' '));
+            var externalLink = document.createElement('a');
+            externalLink.href = node.value;
+            img = document.createElement('img');
+            img.src = 'link.png';
+            img.alt = '[' + match[1] + ']';
+            img.title = 'Go to Web page';
+            externalLink.appendChild(img);
+            span.appendChild(externalLink);
+            }
+        }
+        return span;
+    }
+    if (node.type == 'bnode') {
+        return document.createTextNode('_:' + node.value);
+    }
+    if (node.type == 'literal') {
+        var text = '"' + node.value + '"';
+        if (node['xml:lang']) {
+            text += '@' + node['xml:lang'];
+        }
+        return document.createTextNode(text);
+    }
+    if (node.type == 'typed-literal') {
+        var text = '"' + node.value + '"';
+        if (node.datatype) {
+            text += '^^' + toQNameOrURI(node.datatype);
+        }
+        for (i in numericXSDTypes) {
+            if (numericXSDTypes[i] == node.datatype) {
+                var span = document.createElement('span');
+                span.title = text;
+                span.appendChild(document.createTextNode(node.value));
+                return span;
+            }
+        }
+        return document.createTextNode(text);
+    }
+    return document.createTextNode('???');
+}
 function addEvent(obj, evType, fn){
     if (obj.addEventListener){
         obj.addEventListener(evType, fn, true);
@@ -798,15 +898,16 @@ var myselect = document.getElementById('perfil');
     break;
   case 'canciones':
      parameter1="?canciones ";
-     criterio ='\n OPTIONAL { ?name dbo:musicalArtist ?canciones } .'
+     criterio ='\n OPTIONAL { ?name dbo:artist  ?canciones } .'
        
     break;
   case 'clubes':
     parameter1="?clubes ";
     criterio ='\n OPTIONAL { ?name dbo:team ?clubes } .'
     break;
-  case 'Mango':
-    parameter1="?albunes ";
+  case 'propietario':
+    parameter1="?propietario ";
+    criterio ='\n OPTIONAL { ?name dbp:founders ?propietario } .'
     break;
   case 'Papaya':
     console.log('El kilogramo de Mangos y Papayas cuesta $2.79.');
@@ -851,11 +952,13 @@ var myselect = document.getElementById('perfil');
                                         
             querytext.value=consulta1;
             querybind.value=consulta2;
-	
+	alert("Consulta 1:"+consulta1);
+    alert("consulta 2: "+consulta2);
   
   
   });
    $("#txtconsulta2").change(function () {
+            console.log("entra a evento change del texto");
           querybind.value=txtconsulta2.value;
    });
 });
